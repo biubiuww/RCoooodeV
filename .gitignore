@@ -1,0 +1,8 @@
+.idea/
+.venv/
+docs/_build
+*.pyc
+*.log
+.venv/
+*.db
+log.md

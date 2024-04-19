@@ -1,0 +1,22 @@
+<!-- templates/verify_code.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Registration Code</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Verify Registration Code</h1>
+    <form id="verify-form" method="post">
+        <label for="code">Enter Registration Code:</label>
+        <input type="text" id="code" name="code">
+        <button type="submit">Verify</button>
+    </form>
+    <div id="result"></div>
+
+    <script src="{{ url_for('static', filename='verify_code.js') }}"></script>
+</body>
+</html>
