@@ -6,12 +6,12 @@ from flask_login import current_user, login_user, logout_user, login_required, L
 
 from .uti import generate_and_store_registration_code,verify_registration_code
 from .logging import log_registration_code_usage
-from .models import AdminUser
+from .models import AdminUser,RegistrationCode
 
 
 login_manager = LoginManager()
 
-web_bp = Blueprint('views', __name__,template_folder='templates')
+web_bp = Blueprint('views', __name__, template_folder='templates')
 
 
 # 网站首页路由
@@ -26,6 +26,9 @@ def generate_code():
     if not current_user.is_authenticated:
         return redirect(url_for('views.login'))
     
+    if not current_user.is_admin:
+        return "You are not authorized to access this page.", 403  # 返回403错误表示权限不足
+        
     if request.method == 'POST':
         data = request.get_json()
         code_type = data.get('code_type')
@@ -41,20 +44,28 @@ def generate_code():
             expiration_date = None
         code = generate_and_store_registration_code(code_type, expiration_date, max_usage)
         return {'message': 'Create registration code.','code':code}, 200
-    return render_template('admin/generate_code.html')
+    return render_template('admin/code_generate.html')
 
 # 注册码验证页面路由
 @web_bp.route('/verify', methods=['POST','GET'])
 def verify_code():
     if request.method == 'GET':
-        return render_template('verify_code.html')
+        return render_template('code_verify.html')
     elif request.method == 'POST':
         data = request.get_json()
         code = data.get('code')
         response, status_code = verify_registration_code(code)
         return jsonify(response), status_code
 
- 
+ # 注册码列表页面路由
+@web_bp.route('/code_list', methods=['GET', 'POST'])
+def code_list():
+    if request.method == 'POST':
+        code_id = request.form['code_id']
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    codes = RegistrationCode.query.paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('admin/code_list.html', codes=codes)
 
 # 从数据库中加载用户
 @login_manager.user_loader

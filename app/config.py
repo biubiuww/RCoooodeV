@@ -10,6 +10,7 @@ class Config:
     LOG_DIRECTORY = 'logs'
 
     ADMIN_USERNAME = 'admin'
+    ADMIN_EMAIL = 'admin@admin.com'
     ADMIN_PASSWORD = 'password'
 
 

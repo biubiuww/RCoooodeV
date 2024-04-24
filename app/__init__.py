@@ -49,9 +49,10 @@ def create_app():
         # 使用配置中的管理员账号密码初始化管理员账号密码
         admin_username = app.config['ADMIN_USERNAME']
         admin_password = app.config['ADMIN_PASSWORD']
-        admin = AdminUser.query.filter_by(username=admin_username).first()
+        admin_email = app.config['ADMIN_EMAIL']
+        admin = AdminUser.query.filter_by(email=admin_email).first()
         if not admin:
-            admin = AdminUser(username=admin_username, password=admin_password)
+            admin = AdminUser(email=admin_email, password=admin_password,is_admin=True)
             db.session.add(admin)
             db.session.commit()
 
