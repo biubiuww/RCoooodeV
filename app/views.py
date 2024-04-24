@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, logout_user, login_required, L
 
 from .uti import generate_and_store_registration_code,verify_registration_code
 from .logging import log_registration_code_usage
-from .models import AdminUser,RegistrationCode
+from .models import User,RegistrationCode
 
 
 login_manager = LoginManager()
@@ -44,7 +44,7 @@ def generate_code():
             expiration_date = None
         code = generate_and_store_registration_code(code_type, expiration_date, max_usage)
         return {'message': 'Create registration code.','code':code}, 200
-    return render_template('admin/code_generate.html')
+    return render_template('admin/admin_code_generate.html')
 
 # 注册码验证页面路由
 @web_bp.route('/verify', methods=['POST','GET'])
@@ -57,20 +57,28 @@ def verify_code():
         response, status_code = verify_registration_code(code)
         return jsonify(response), status_code
 
- # 注册码列表页面路由
+#  注册码列表页面路由
 @web_bp.route('/code_list', methods=['GET', 'POST'])
 def code_list():
+    if not current_user.is_authenticated:
+        return redirect(url_for('views.login'))
+    
+    if not current_user.is_admin:
+        return "You are not authorized to access this page.", 403  # 返回403错误表示权限不足
+        
     if request.method == 'POST':
         code_id = request.form['code_id']
     page = request.args.get('page', 1, type=int)
     per_page = 10
     codes = RegistrationCode.query.paginate(page=page, per_page=per_page, error_out=False)
-    return render_template('admin/code_list.html', codes=codes)
+    return render_template('admin/admin_code_list.html', codes=codes)
 
+
+    
 # 从数据库中加载用户
 @login_manager.user_loader
 def load_user(user_id):
-    return AdminUser.query.get(user_id)
+    return User.query.get(user_id)
 
 # 管理员登录页面路由
 @web_bp.route('/login', methods=['GET', 'POST'])
@@ -81,7 +89,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = AdminUser.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
         if user and user.verify_password(password):
             login_user(user)
             flash('Logged in successfully.', 'success')

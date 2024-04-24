@@ -1,19 +1,11 @@
-<!-- templates/admin_dashboard.html -->
+<!-- admin_dashboard.html -->
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, admin! This is your dashboard.</p>
-    <ul>
-        <li><a href="{{ url_for('views.generate_code') }}">Generate Registration Code</a></li>
-        <li><a href="{{ url_for('views.logout') }}">Logout</a></li>
-    </ul>
-</body>
-</html>
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <!-- Your dashboard content goes here -->
+    <h1>Welcome to the {{ current_user.email }}!</h1>
+    <!-- Other dashboard elements -->
+{% endblock %}

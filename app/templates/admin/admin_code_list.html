@@ -1,0 +1,65 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Registration Codes Management</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <!-- <th>ID</th> -->
+                <th>Code</th>
+                <th>Type</th>
+                <th>Expiration Date</th>
+                <th>Max Usage</th>
+                <th>Usage Count</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registration_code in codes.items %}
+            <tr>
+                <!-- <td>{{ registration_code.id }}</td> -->
+                <td>{{ registration_code.code }}</td>
+                <td>{{ registration_code.type }}</td>
+                <td>{{ registration_code.expiration_date }}</td>
+                <td>{{ registration_code.max_usage }}</td>
+                <td>{{ registration_code.usage_count }}</td>
+                <td class="{% if registration_code.status == 1 %}valid{% else %}invalid{% endif %}">
+                    {% if registration_code.status == 1 %}
+                        <span class="valid">&#10004;</span> <!-- 绿色小勾 -->
+                    {% else %}
+                        <span class="invalid">&#10006;</span> <!-- 红色小叉 -->
+                    {% endif %}
+                <td>
+                    <form action="{{ url_for('views.code_list') }}" method="post">
+                        <input type="hidden" name="code_id" value="{{ registration_code.id }}">
+                        <!-- 这里可以添加其他字段和按钮来更新注册码的属性 -->
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
+    {% if codes.has_prev %}
+    <a href="{{ url_for('views.code_list', page=codes.prev_num) }}">Previous</a>
+    {% endif %}
+    {% for num in codes.iter_pages() %}
+        {% if num %}
+            {% if num != codes.page %}
+                <a href="{{ url_for('views.code_list', page=num) }}">{{ num }}</a>
+            {% else %}
+                <span>  {{ num }}</span>
+            {% endif %}
+        {% else %}
+            <span class="ellipsis">...</span>
+        {% endif %}
+    {% endfor %}
+    {% if codes.has_next %}
+    <a href="{{ url_for('views.code_list', page=codes.next_num) }}">Next</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,12 +3,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from enum import Enum
 db = SQLAlchemy()
+
+class RegistrationCodeType(Enum):
+    TIME_INSTANT = 1
+    TIME_DELAYED = 2
+    QUANTITY = 3
+
 
 # 定义注册码模型
 class RegistrationCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(20), unique=True, nullable=False)
+    # type = db.Column(db.Enum(RegistrationCodeType), nullable=False)
     type = db.Column(db.String(10), nullable=False)  # 时间生效类型或使用次数生效类型
     expiration_date = db.Column(db.DateTime)  # 有效期截止日期
     max_usage = db.Column(db.Integer)  # 最大使用次数
@@ -18,7 +26,7 @@ class RegistrationCode(db.Model):
     def __repr__(self):
         return f"RegistrationCode(code='{self.code}', type='{self.type}', status='{self.status}')"
 
-class AdminUser(db.Model,UserMixin):
+class User(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     # username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)

@@ -27,7 +27,7 @@ def create_app():
     db.init_app(app)
 
     # 导入模型，避免循环引用
-    from app.models import AdminUser
+    from app.models import User
 
     # 创建所有模型对应的表
     with app.app_context():
@@ -50,9 +50,9 @@ def create_app():
         admin_username = app.config['ADMIN_USERNAME']
         admin_password = app.config['ADMIN_PASSWORD']
         admin_email = app.config['ADMIN_EMAIL']
-        admin = AdminUser.query.filter_by(email=admin_email).first()
+        admin = User.query.filter_by(email=admin_email).first()
         if not admin:
-            admin = AdminUser(email=admin_email, password=admin_password,is_admin=True)
+            admin = User(email=admin_email, password=admin_password,is_admin=True)
             db.session.add(admin)
             db.session.commit()
 
