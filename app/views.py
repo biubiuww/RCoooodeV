@@ -87,9 +87,9 @@ def login():
         return redirect(request.args.get('next') or url_for('views.admin_dashboard'))
 
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         if user and user.verify_password(password):
             login_user(user)
             flash('Logged in successfully.', 'success')
