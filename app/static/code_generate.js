@@ -1,89 +1,95 @@
 document.addEventListener('DOMContentLoaded', function () {
+    var propertySelect = document.getElementById('property_select');
     var codeTypeSelect = document.getElementById('code_type');
-    var expirationDurationDiv = document.getElementById('expiration_duration_div');
-    var maxUsageDiv = document.getElementById('max_usage_div');
     var expirationDateResult = document.getElementById('expiration_date_result');
-    var responseDataDiv = document.getElementById('response-data'); // 新添加的 <div> 元素用于显示来自后端的数据
+    var responseDataDiv = document.getElementById('response-data');
+    // var properties = JSON.parse('{{ properties | tojson | safe }}');
 
-    // 计算过期时间
-    function calculateExpirationDate() {
-        var duration = parseInt(document.getElementById('expiration_duration').value);
-        var unit = document.getElementById('duration_unit').value;
-        var currentDate = new Date();
-
-        switch (unit) {
-            case 'days':
-                currentDate.setDate(currentDate.getDate() + duration);
-                break;
-            case 'weeks':
-                currentDate.setDate(currentDate.getDate() + duration * 7);
-                break;
-            case 'months':
-                currentDate.setMonth(currentDate.getMonth() + duration);
-                break;
-        }
-
-        // 删除毫秒部分
-        currentDate.setMilliseconds(0);
-
-        // 将过期日期转换为本地时间字符串
-        var expirationDateString = currentDate.toLocaleString();
-        expirationDateResult.innerText = '过期时间: ' + expirationDateString;
-
-
-        return currentDate.toISOString(); // 返回计算的过期时间
-    }
-
-    // 根据注册码类型显示相应的输入框
-    function showInputFields() {
-        var codeType = codeTypeSelect.value;
-        if (codeType === 'time') {
-            expirationDurationDiv.style.display = 'block';
-            maxUsageDiv.style.display = 'none';
-            document.getElementById('expiration_duration').setAttribute('required', true); // 设置过期时间为必填
-            document.getElementById('max_usage').removeAttribute('required'); // 移除最大使用量的必填属性
-        } else if (codeType === 'usage') {
-            expirationDurationDiv.style.display = 'none';
-            maxUsageDiv.style.display = 'block';
-            document.getElementById('expiration_duration').removeAttribute('required'); // 移除过期时间的必填属性
-            document.getElementById('max_usage').setAttribute('required', true); // 设置最大使用量为必填
-        }
-    }
-
-    // 初始化显示对应的输入框
-    showInputFields();
+    // 初始化页面时获取注册码属性并填充到下拉列表中
+    populatePropertySelect(properties);
 
     // code类型选择的事件监听器
     codeTypeSelect.addEventListener('change', function () {
-        showInputFields(); // 根据选择的注册码类型显示相应的输入框
-        expirationDateResult.innerText = ''; // 切换类型时隐藏注册信息消息
-        responseDataDiv.innerText = ''; // 切换类型时隐藏注册信息消息
+        expirationDateResult.innerText = '';
+        responseDataDiv.innerText = '';
+        updatePropertyOptions(); // 根据注册码类型更新属性选项
+        // 更新属性选项时设置属性选择框为默认值
+        setDefaultProperty();
     });
 
-    // 过期时间输入框的事件监听器
-    document.getElementById('expiration_duration').addEventListener('input', function () {
-        calculateExpirationDate();
-        responseDataDiv.innerText = ''; // 输入事件发生时隐藏注册信息消息
-    });
+    // 触发一次change事件，以确保在页面加载时更新属性选项
+    codeTypeSelect.dispatchEvent(new Event('change'));
 
-    // 表单提交事件监听器
-    document.getElementById('generate-form').addEventListener('submit', function (event) {
-        event.preventDefault(); // 阻止默认表单提交行为
+    // 根据注册码类型更新属性选项
+    function updatePropertyOptions() {
+        var selectedType = codeTypeSelect.value;
+        var options = propertySelect.options;
 
-        var codeType = document.getElementById('code_type').value;
-        var data = {};
-
-        if (codeType === 'time') {
-            data.code_type = codeType;
-            data.expiration_date = calculateExpirationDate();
-        } else if (codeType === 'usage') {
-            data.code_type = codeType;
-            var maxUsageValue = document.getElementById('max_usage').value.trim(); // 去除输入值两端的空格
-            if (maxUsageValue !== '') {
-                // 如果最大使用量输入框有值，则将其包含在数据中
-                data.max_usage = parseInt(maxUsageValue);
+        // 遍历下拉列表中的选项，根据注册码类型隐藏或显示相应类型的属性
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
+            if (option.dataset.type === selectedType || option.dataset.type === '') {
+                option.style.display = 'block'; // 显示与注册码类型匹配的属性选项
+            } else {
+                option.style.display = 'none'; // 隐藏不匹配的属性选项
             }
         }
+    }
+
+    function populatePropertySelect(properties) {
+        // 清空下拉列表
+        propertySelect.innerHTML = '';
+
+        // 如果属性列表为空，添加一个空的选项
+        if (properties.length === 0) {
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'No properties available';
+            propertySelect.appendChild(emptyOption);
+        } else {
+            // 遍历属性数据并添加到下拉列表中
+            properties.forEach(property => {
+                var option = document.createElement('option');
+                option.value = property[0];
+                option.textContent = property[1] + ' (' + property[4] + ')';
+                option.dataset.type = property[4]; // 添加属性类型
+                propertySelect.appendChild(option);
+            });
+        }
+    }
+
+    // 设置属性选择框为当前 CODE type 相关的默认属性
+    function setDefaultProperty() {
+        var selectedType = codeTypeSelect.value;
+        var options = propertySelect.options;
+
+        for (var i = 0; i < options.length; i++) {
+            var option = options[i];
+            if (option.dataset.type === selectedType || option.dataset.type === '') {
+                propertySelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+
+    // 计算过期时间
+    function calculateExpirationDate() {
+        var selectedPropertyId = propertySelect.value;
+        var expirationDate = new Date().toISOString();
+
+        // 将数据发送到后端
+        sendDataToBackend(expirationDate, selectedPropertyId);
+
+        // 在前端显示过期时间
+        displayExpirationDate(expirationDate);
+    }
+
+    // 将数据发送到后端
+    function sendDataToBackend(expirationDate, selectedPropertyId) {
+        var data = {
+            expiration_date: expirationDate,
+            property_id: selectedPropertyId
+        };
 
         // 发送到后端的 AJAX POST 请求
         var xhr = new XMLHttpRequest();
@@ -95,8 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (response.code) {
                     // 如果返回的注册信息中包含注册码，则显示在网页中
                     responseDataDiv.innerText = 'Registration Code: ' + response.code;
-                    document.getElementById('generate-form').reset(); // 表单提交后重置表单
-                    showInputFields(); // 根据返回数据重新显示对应的输入框
                 } else {
                     console.error('未收到有效的注册信息。');
                 }
@@ -108,5 +112,11 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('生成注册码时发生网络错误。');
         };
         xhr.send(JSON.stringify(data));
-    });
+    }
+
+    // 在前端显示过期时间
+    function displayExpirationDate(expirationDate) {
+        // 可根据需要在界面上显示过期时间
+        expirationDateResult.innerText = '过期时间: ' + expirationDate;
+    }
 });

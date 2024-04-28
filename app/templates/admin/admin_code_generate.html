@@ -9,29 +9,28 @@
 <form id="generate-form" method="post">
     <label for="code_type">Code Type:</label>
     <select id="code_type" name="code_type">
-        <option value="time" selected>Time-based</option>
-        <option value="usage">Usage-based</option>
+        <option value="TIME" selected>即时生效</option>
+        <option value="DELAY">使用生效</option>
+        <option value="USAGE">计次使用</option>
     </select>
     <br><br>
-    <div id="expiration_duration_div">
-        <label for="expiration_duration">Expiration Duration:</label>
-        <input type="number" id="expiration_duration" name="expiration_duration" min="1" required>
-        <select id="duration_unit" name="duration_unit">
-            <option value="days" selected>Days</option>
-            <option value="weeks">Weeks</option>
-            <option value="months">Months</option>
+    <div id="property_select_div">
+        <label for="property_select">Property:</label>
+        <select id="property_select" name="property_select">
+            {% for property in properties %}
+            <option value="{{ property[0] }}">{{ property[1] }} ({{ property[4] }})</option>
+            {% endfor %}
         </select>
-        <br><br>
-        <div id="expiration_date_result"></div>
     </div>
-    <div id="max_usage_div" style="display:none;">
-        <label for="max_usage">Max Usage:</label>
-        <input type="number" id="max_usage" name="max_usage" min="1">
-        <br><br>
+    <br><br>
+    <div id="expiration_duration_div">
+        <div id="expiration_date_result"></div>
     </div>
     <button type="submit">Generate</button>
 </form>
 <div id="response-data" style="text-align: center; margin-top: 50px;"></div>
-
+<script>
+    var properties = JSON.parse('{{ properties | tojson | safe }}');
+</script>
 <script src="{{ url_for('static', filename='code_generate.js') }}"></script>
 {% endblock %}

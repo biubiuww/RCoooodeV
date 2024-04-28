@@ -3,25 +3,63 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Enum as EnumColumn
 from enum import Enum
 db = SQLAlchemy()
 
-class RegistrationCodeType(Enum):
-    TIME_INSTANT = 1
-    TIME_DELAYED = 2
-    QUANTITY = 3
+class TimeEnum(Enum):
+    DAY = 'day'
+    WEEK = 'week'
+    MONTH = 'month'
+    COUNT = 'count'
+
+class TypeEnum(Enum):
+    TIME = 'time'
+    DELAY = 'delay'
+    USAGE = 'usage'
+
+# 定义注册码属性模型
+class CodeProperty(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    unit = db.Column(EnumColumn(TimeEnum), nullable=False)
+    value = db.Column(db.Integer, nullable=False)
+    type = db.Column(EnumColumn(TypeEnum), nullable=False)
+    codes = db.relationship('RegistrationCode', backref='code_property', lazy=True)
+
+    def __repr__(self):
+        return f"CodeProperty(name='{self.name}', unit='{self.unit}', value='{self.value}')"
+
+class Renewal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(EnumColumn(TypeEnum), nullable=False)
+    value = db.Column(db.Integer, nullable=False)
+    registration_code_id = db.Column(db.Integer, db.ForeignKey('registration_code.id'), nullable=False)
 
 
-# 定义注册码模型
 class RegistrationCode(db.Model):
+    """
+    注册码模型
+    Attributes:
+        code: 注册码
+        type: 注册码类型：
+            时间生效类型(time:创建时间+时间周期=过期时间，delay:首次使用+时间周期=过期时间)
+            使用次数生效类型(usage：使用次数生效)
+        expiration_date: 有效期截止日期（如果注册码是时间生效类型）
+        max_usage: 最大使用次数（如果注册码是使用次数生效类型）
+        usage_count: 已使用次数
+        status: 状态表示(True 有效, False 无效)
+    """
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(20), unique=True, nullable=False)
-    # type = db.Column(db.Enum(RegistrationCodeType), nullable=False)
-    type = db.Column(db.String(10), nullable=False)  # 时间生效类型或使用次数生效类型
-    expiration_date = db.Column(db.DateTime)  # 有效期截止日期
-    max_usage = db.Column(db.Integer)  # 最大使用次数
-    usage_count = db.Column(db.Integer, default=0)  # 已使用次数
-    status = db.Column(db.Integer, default=1)   # 状态：0 无效 1 有效
+    type = db.Column(EnumColumn(TypeEnum), nullable=False)
+    # type = db.Column(db.String(10), nullable=False)  
+    expiration_date = db.Column(db.DateTime, nullable=True)  
+    max_usage = db.Column(db.Integer, nullable=True)  
+    usage_count = db.Column(db.Integer, default=0)  
+    status = db.Column(db.Boolean, default=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('code_property.id'), nullable=False)
+    renewals = db.relationship('Renewal', backref='registration_code', lazy=True)
 
     def __repr__(self):
         return f"RegistrationCode(code='{self.code}', type='{self.type}', status='{self.status}')"

@@ -1,0 +1,74 @@
+<!-- admin/admin_code_property.html -->
+
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Property List{% endblock %}
+
+{% block content %}
+<h1>Property List</h1>
+
+<table id="propertyTable" border="1">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Unit</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for property in properties %}
+    <tr data-id="{{ property[0] }}">
+      <td>{{ property[1] }}</td>
+      <td>{{ property[4].split('.')[-1] }}</td>
+      <td>{{ property[3] }}</td>
+      <td>{{ property[2].split('.')[-1] }}</td>
+      <td>
+        <button class="editBtn">Edit</button>
+        <button class="deleteBtn">Delete</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<button id="addPropertyBtn">Add New Property</button>
+
+<div id="editForm" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Edit Property</h2>
+    <form id="propertyForm">
+      <!-- Hidden input field for property ID -->
+      <input type="hidden" id="propertyId" name="propertyId">
+      <label for="propertyName">Name:</label>
+      <input type="text" id="propertyName" name="propertyName" required><br><br>
+      
+      <label for="propertyUnit">Unit:</label>
+      <select id="propertyUnit" name="propertyUnit" required>
+        <option value="DAY">Day</option>
+        <option value="WEEK">Week</option>
+        <option value="MONTH">Month</option>
+        <option value="COUNT">Count</option>
+      </select><br><br>
+      
+      <label for="propertyValue">Value:</label>
+      <input type="text" id="propertyValue" name="propertyValue" required><br><br>
+      
+      <label for="propertyType">Type:</label>
+      <select id="propertyType" name="propertyType" required>
+        <option value="TIME">Time</option>
+        <option value="DELAY">Delay</option>
+        <option value="USAGE">Usage</option>
+      </select><br><br>
+      
+      <button type="button" id="saveBtn">Save</button>
+      <button type="button" id="cancelBtn">Cancel</button>
+    </form>
+    <div id="response-data" style="text-align: center; margin-top: 50px;"></div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='property_edit.js') }}"></script>
+{% endblock %}
